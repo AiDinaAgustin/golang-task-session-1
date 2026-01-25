@@ -67,6 +67,9 @@ func initApp() {
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 
+	// Root endpoint
+	http.HandleFunc("/", rootHandler)
+
 	// Health check
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/api/health", healthHandler)
@@ -82,6 +85,35 @@ func initApp() {
 	http.HandleFunc("/api/docs", swaggerUIHandler)
 	http.HandleFunc("/swagger.json", swaggerJSONHandler)
 	http.HandleFunc("/api/swagger.json", swaggerJSONHandler)
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	// Only handle exact root path
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	response := map[string]interface{}{
+		"message": "Welcome to Category CRUD API",
+		"version": "1.0.0",
+		"endpoints": map[string]string{
+			"GET /":                 "This welcome message",
+			"GET /health":           "Health check",
+			"GET /categories":       "Get all categories",
+			"POST /categories":      "Create a category",
+			"GET /categories/{id}":  "Get category by ID",
+			"PUT /categories/{id}":  "Update category",
+			"DELETE /categories/{id}": "Delete category",
+			"GET /docs":             "Swagger API Documentation",
+		},
+		"documentation": "/docs",
+	}
+
+	json.NewEncoder(w).Encode(response)
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {

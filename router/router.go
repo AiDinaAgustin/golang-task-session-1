@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 	"tugas-session-1/handlers"
@@ -9,6 +10,33 @@ import (
 // SetupRoutes configures all application routes
 func SetupRoutes(categoryHandler *handlers.CategoryHandler) http.Handler {
 	mux := http.NewServeMux()
+
+	// Root endpoint
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Only handle exact root path
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		response := map[string]interface{}{
+			"message": "Welcome to Category CRUD API",
+			"version": "1.0.0",
+			"endpoints": map[string]string{
+				"GET /":                   "This welcome message",
+				"GET /health":             "Health check",
+				"GET /categories":         "Get all categories",
+				"POST /categories":        "Create a category",
+				"GET /categories/{id}":    "Get category by ID",
+				"PUT /categories/{id}":    "Update category",
+				"DELETE /categories/{id}": "Delete category",
+				"GET /docs":               "Swagger API Documentation",
+			},
+			"documentation": "/docs",
+		}
+		json.NewEncoder(w).Encode(response)
+	})
 
 	// Category routes
 	mux.HandleFunc("/categories", func(w http.ResponseWriter, r *http.Request) {
