@@ -29,7 +29,6 @@ func Connect(connectionString string) error {
 		return fmt.Errorf("error connecting to database: %w", err)
 	}
 
-	log.Println("✅ Successfully connected to database")
 	return nil
 }
 

@@ -92,6 +92,22 @@ go run main.go
 
 Server akan berjalan di `http://localhost:8080`
 
+## 🚀 Deploy ke Vercel
+
+API ini sudah siap deploy ke Vercel menggunakan serverless functions!
+
+**Quick Deploy:**
+1. Push ke GitHub
+2. Import project di https://vercel.com
+3. Set environment variable `DATABASE_URL`
+4. Deploy!
+
+**Panduan Lengkap:** [`VERCEL.md`](./VERCEL.md)
+
+**Struktur Vercel:**
+- `api/index.go` - Serverless function handler
+- `vercel.json` - Konfigurasi deployment
+
 ## 📡 API Endpoints
 
 ### 1. Get All Categories
