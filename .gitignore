@@ -1,0 +1,20 @@
+# Environment variables
+.env
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build artifacts
+tugas-session-1
+bin/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
