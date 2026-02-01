@@ -8,7 +8,12 @@ import (
 	"strings"
 	"tugas-session-1/models"
 	"tugas-session-1/service"
+
+	_ "embed"
 )
+
+//go:embed ../swagger.json
+var swaggerSpec []byte
 
 type CategoryHandler struct {
 	service service.CategoryService
@@ -233,5 +238,5 @@ func (h *CategoryHandler) SwaggerHandler(w http.ResponseWriter, r *http.Request)
 // SwaggerJSONHandler serves the swagger.json file
 func (h *CategoryHandler) SwaggerJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	http.ServeFile(w, r, "swagger.json")
+	w.Write(swaggerSpec)
 }
