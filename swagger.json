@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Category CRUD API",
-    "description": "RESTful API untuk manajemen kategori menggunakan Go vanilla (tanpa framework) dengan PostgreSQL (Neon).\n\n## Features\n- CRUD lengkap untuk kategori\n- Validasi input\n- Error handling yang proper\n- CORS enabled",
+    "title": "Category & Product CRUD API",
+    "description": "RESTful API untuk manajemen kategori dan produk menggunakan Go vanilla (tanpa framework) dengan PostgreSQL (Neon).\n\n## Features\n- CRUD lengkap untuk kategori dan produk\n- Service Layer architecture\n- Dependency Injection pattern\n- Validasi input\n- Error handling yang proper\n- CORS enabled",
     "version": "1.0.0",
     "contact": {
       "name": "API Support"
@@ -20,6 +20,10 @@
       "description": "Operasi CRUD untuk kategori"
     },
     {
+      "name": "Products",
+      "description": "Operasi CRUD untuk produk"
+    },
+    {
       "name": "Health",
       "description": "Health check endpoint"
     }
@@ -27,7 +31,9 @@
   "paths": {
     "/health": {
       "get": {
-        "tags": ["Health"],
+        "tags": [
+          "Health"
+        ],
         "summary": "Health check",
         "description": "Memeriksa status kesehatan API",
         "responses": {
@@ -52,7 +58,9 @@
     },
     "/categories": {
       "get": {
-        "tags": ["Categories"],
+        "tags": [
+          "Categories"
+        ],
         "summary": "Get all categories",
         "description": "Mengambil semua kategori yang tersedia",
         "responses": {
@@ -72,7 +80,9 @@
         }
       },
       "post": {
-        "tags": ["Categories"],
+        "tags": [
+          "Categories"
+        ],
         "summary": "Create a new category",
         "description": "Membuat kategori baru",
         "requestBody": {
@@ -115,7 +125,9 @@
     },
     "/categories/{id}": {
       "get": {
-        "tags": ["Categories"],
+        "tags": [
+          "Categories"
+        ],
         "summary": "Get category by ID",
         "description": "Mengambil detail satu kategori berdasarkan ID",
         "parameters": [
@@ -154,7 +166,9 @@
         }
       },
       "put": {
-        "tags": ["Categories"],
+        "tags": [
+          "Categories"
+        ],
         "summary": "Update category",
         "description": "Mengupdate kategori yang sudah ada",
         "parameters": [
@@ -217,7 +231,9 @@
         }
       },
       "delete": {
-        "tags": ["Categories"],
+        "tags": [
+          "Categories"
+        ],
         "summary": "Delete category",
         "description": "Menghapus kategori berdasarkan ID",
         "parameters": [
@@ -251,6 +267,232 @@
           },
           "404": {
             "description": "Category not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Get all products",
+        "description": "Mengambil semua produk yang tersedia",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Create a new product",
+        "description": "Membuat produk baru",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequest"
+              },
+              "example": {
+                "name": "Laptop Gaming",
+                "price": 18500000,
+                "stock": 15,
+                "category_id": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Get product by ID",
+        "description": "Mengambil detail satu produk berdasarkan ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Product ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Update product",
+        "description": "Mengupdate produk yang sudah ada",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Product ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductRequest"
+              },
+              "example": {
+                "name": "Laptop Gaming Pro",
+                "price": 22000000,
+                "stock": 10,
+                "category_id": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Delete product",
+        "description": "Menghapus produk berdasarkan ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Product ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Product deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -299,7 +541,9 @@
       },
       "CreateCategoryRequest": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -316,7 +560,9 @@
       },
       "UpdateCategoryRequest": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -343,6 +589,125 @@
             "type": "string",
             "description": "Error message detail",
             "example": "name is required"
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Product ID (auto-generated)",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Product name",
+            "example": "Laptop Gaming"
+          },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "description": "Product price",
+            "example": 18500000
+          },
+          "stock": {
+            "type": "integer",
+            "description": "Product stock quantity",
+            "example": 15
+          },
+          "category_id": {
+            "type": "integer",
+            "description": "ID of the category",
+            "example": 1
+          },
+          "category_name": {
+            "type": "string",
+            "description": "Name of the category",
+            "example": "Electronics"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp",
+            "example": "2026-02-01T21:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp",
+            "example": "2026-02-01T21:30:00Z"
+          }
+        }
+      },
+      "CreateProductRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "price",
+          "stock"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Product name (required)",
+            "example": "Laptop Gaming",
+            "minLength": 1
+          },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "description": "Product price (required)",
+            "example": 18500000,
+            "minimum": 0
+          },
+          "stock": {
+            "type": "integer",
+            "description": "Product stock quantity (required)",
+            "example": 15,
+            "minimum": 0
+          },
+          "category_id": {
+            "type": "integer",
+            "description": "ID of the category (required)",
+            "example": 1,
+            "minimum": 1
+          }
+        }
+      },
+      "UpdateProductRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "price",
+          "stock",
+          "category_id"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Product name (required)",
+            "example": "Laptop Gaming Pro",
+            "minLength": 1
+          },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "description": "Product price (required)",
+            "example": 22000000,
+            "minimum": 0
+          },
+          "stock": {
+            "type": "integer",
+            "description": "Product stock quantity (required)",
+            "example": 10,
+            "minimum": 0
+          },
+          "category_id": {
+            "type": "integer",
+            "description": "ID of the category (required)",
+            "example": 1,
+            "minimum": 1
           }
         }
       }

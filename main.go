@@ -10,6 +10,7 @@ import (
 	"tugas-session-1/handlers"
 	"tugas-session-1/repository"
 	"tugas-session-1/router"
+	"tugas-session-1/service"
 
 	"github.com/joho/godotenv"
 )
@@ -32,12 +33,25 @@ func main() {
 	}
 	defer database.Close()
 
+	// Run migrations
+	log.Println("Running database migrations...")
+	if err := database.RunMigrations(database.DB); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+	log.Println("✅ Migrations completed successfully")
+
 	// Initialize repository and handlers
 	categoryRepo := repository.NewCategoryRepository(database.DB)
-	categoryHandler := handlers.NewCategoryHandler(categoryRepo)
+	categoryService := service.NewCategoryService(categoryRepo)
+	categoryHandler := handlers.NewCategoryHandler(categoryService)
+
+	// Initialize product with service layer and dependency injection
+	productRepo := repository.NewProductRepository(database.DB)
+	productService := service.NewProductService(productRepo)
+	productHandler := handlers.NewProductHandler(productService)
 
 	// Setup routes
-	handler := router.SetupRoutes(categoryHandler)
+	handler := router.SetupRoutes(categoryHandler, productHandler)
 
 	// Get port from environment or use default
 	port := os.Getenv("PORT")

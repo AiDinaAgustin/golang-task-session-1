@@ -7,16 +7,16 @@ import (
 	"strconv"
 	"strings"
 	"tugas-session-1/models"
-	"tugas-session-1/repository"
+	"tugas-session-1/service"
 )
 
 type CategoryHandler struct {
-	repo *repository.CategoryRepository
+	service service.CategoryService
 }
 
 // NewCategoryHandler creates a new category handler
-func NewCategoryHandler(repo *repository.CategoryRepository) *CategoryHandler {
-	return &CategoryHandler{repo: repo}
+func NewCategoryHandler(service service.CategoryService) *CategoryHandler {
+	return &CategoryHandler{service: service}
 }
 
 // ErrorResponse represents an error response
@@ -48,7 +48,7 @@ func respondError(w http.ResponseWriter, status int, err string, message string)
 
 // GetAllCategories handles GET /categories
 func (h *CategoryHandler) GetAllCategories(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.repo.GetAll()
+	categories, err := h.service.GetAll()
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Internal Server Error", err.Error())
 		return
@@ -71,7 +71,7 @@ func (h *CategoryHandler) GetCategoryByID(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	category, err := h.repo.GetByID(id)
+	category, err := h.service.GetByID(id)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Internal Server Error", err.Error())
 		return
@@ -99,7 +99,7 @@ func (h *CategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	category, err := h.repo.Create(&req)
+	category, err := h.service.Create(&req)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Internal Server Error", err.Error())
 		return
@@ -129,7 +129,7 @@ func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	category, err := h.repo.Update(id, &req)
+	category, err := h.service.Update(id, &req)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Internal Server Error", err.Error())
 		return
@@ -152,7 +152,7 @@ func (h *CategoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = h.repo.Delete(id)
+	err = h.service.Delete(id)
 	if err == sql.ErrNoRows {
 		respondError(w, http.StatusNotFound, "Not Found", "Category not found")
 		return
