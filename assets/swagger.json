@@ -10,6 +10,10 @@
   },
   "servers": [
     {
+      "url": "https://kasir-api-iota.vercel.app",
+      "description": "Production server (Vercel)"
+    },
+    {
       "url": "http://localhost:8080",
       "description": "Development server"
     }
