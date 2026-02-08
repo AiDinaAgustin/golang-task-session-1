@@ -49,8 +49,13 @@ func initApp() {
 	productService := service.NewProductService(productRepo)
 	productHandler := handlers.NewProductHandler(productService)
 
+	// Initialize Transaction with service layer and dependency injection
+	transactionRepo := repository.NewTransactionRepository(database.DB)
+	transactionService := service.NewTransactionService(transactionRepo, productRepo)
+	transactionHandler := handlers.NewTransactionHandler(transactionService)
+
 	// Setup routes
-	mainHandler = router.SetupRoutes(categoryHandler, productHandler)
+	mainHandler = router.SetupRoutes(categoryHandler, productHandler, transactionHandler)
 }
 
 // Handler is the entry point for Vercel serverless function

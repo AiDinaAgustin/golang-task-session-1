@@ -8,7 +8,7 @@ import (
 )
 
 // SetupRoutes configures all application routes
-func SetupRoutes(categoryHandler *handlers.CategoryHandler, productHandler *handlers.ProductHandler) http.Handler {
+func SetupRoutes(categoryHandler *handlers.CategoryHandler, productHandler *handlers.ProductHandler, transactionHandler *handlers.TransactionHandler) http.Handler {
 	mux := http.NewServeMux()
 
 	// Root endpoint
@@ -24,19 +24,24 @@ func SetupRoutes(categoryHandler *handlers.CategoryHandler, productHandler *hand
 			"message": "Welcome to Category & Product CRUD API",
 			"version": "1.0.0",
 			"endpoints": map[string]string{
-				"GET /":                   "This welcome message",
-				"GET /health":             "Health check",
-				"GET /categories":         "Get all categories",
-				"POST /categories":        "Create a category",
-				"GET /categories/{id}":    "Get category by ID",
-				"PUT /categories/{id}":    "Update category",
-				"DELETE /categories/{id}": "Delete category",
-				"GET /products":           "Get all products",
-				"POST /products":          "Create a product",
-				"GET /products/{id}":      "Get product by ID",
-				"PUT /products/{id}":      "Update product",
-				"DELETE /products/{id}":   "Delete product",
-				"GET /docs":               "Swagger API Documentation",
+				"GET /":                        "This welcome message",
+				"GET /health":                  "Health check",
+				"GET /categories":              "Get all categories",
+				"POST /categories":             "Create a category",
+				"GET /categories/{id}":         "Get category by ID",
+				"PUT /categories/{id}":         "Update category",
+				"DELETE /categories/{id}":      "Delete category",
+				"GET /products":                "Get all products",
+				"POST /products":               "Create a product",
+				"GET /products/{id}":           "Get product by ID",
+				"PUT /products/{id}":           "Update product",
+				"DELETE /products/{id}":        "Delete product",
+				"POST /api/checkout":           "Create a transaction (checkout)",
+				"GET /api/transactions":        "Get all transactions",
+				"GET /api/transactions/{id}":  "Get transaction by ID",
+				"GET /api/report":              "Get report (requires start_date & end_date)",
+				"GET /api/report/hari-ini":     "Get today's report",
+				"GET /docs":                    "Swagger API Documentation",
 			},
 			"documentation": "/docs",
 		}
@@ -148,6 +153,112 @@ func SetupRoutes(categoryHandler *handlers.CategoryHandler, productHandler *hand
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+
+
+	// Checkout endpoint - separated from transactions
+	mux.HandleFunc("/api/checkout", func(w http.ResponseWriter, r *http.Request) {
+		// Enable CORS
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		// Handle preflight requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			transactionHandler.Checkout(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// Transaction routes - for getting transaction data
+	mux.HandleFunc("/api/transactions", func(w http.ResponseWriter, r *http.Request) {
+		// Enable CORS
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		// Handle preflight requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if r.Method == http.MethodGet {
+			transactionHandler.GetAllTransactions(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/api/transactions/", func(w http.ResponseWriter, r *http.Request) {
+		// Enable CORS
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		// Handle preflight requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Only handle if there's an ID in the path
+		if strings.TrimPrefix(r.URL.Path, "/api/transactions/") == "" {
+			http.Error(w, "Transaction ID required", http.StatusBadRequest)
+			return
+		}
+
+		if r.Method == http.MethodGet {
+			transactionHandler.GetTransactionByID(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// Report endpoints - for analytics
+	mux.HandleFunc("/api/report/hari-ini", func(w http.ResponseWriter, r *http.Request) {
+		// Enable CORS
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		// Handle preflight requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if r.Method == http.MethodGet {
+			transactionHandler.GetTodayReport(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/api/report", func(w http.ResponseWriter, r *http.Request) {
+		// Enable CORS
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		// Handle preflight requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if r.Method == http.MethodGet {
+			transactionHandler.GetReport(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
 
 	// Health check endpoint
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

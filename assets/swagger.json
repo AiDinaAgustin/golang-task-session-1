@@ -24,6 +24,14 @@
       "description": "Operasi CRUD untuk produk"
     },
     {
+      "name": "Transactions",
+      "description": "Operasi transaksi dan checkout"
+    },
+    {
+      "name": "Reports",
+      "description": "Laporan transaksi berdasarkan periode"
+    },
+    {
       "name": "Health",
       "description": "Health check endpoint"
     }
@@ -284,7 +292,19 @@
           "Products"
         ],
         "summary": "Get all products",
-        "description": "Mengambil semua produk yang tersedia",
+        "description": "Mengambil semua produk yang tersedia. Bisa difilter berdasarkan nama produk.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "description": "Search products by name (case-insensitive, partial match)",
+            "schema": {
+              "type": "string",
+              "example": "laptop"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful operation",
@@ -503,6 +523,202 @@
           }
         }
       }
+    },
+    "/api/checkout": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Create a transaction (Checkout)",
+        "description": "Membuat transaksi baru dengan item-item produk. Stok produk akan otomatis dikurangi.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              },
+              "example": {
+                "items": [
+                  {
+                    "product_id": 1,
+                    "quantity": 2
+                  },
+                  {
+                    "product_id": 2,
+                    "quantity": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error or insufficient stock",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Get all transactions",
+        "description": "Mengambil semua transaksi yang tersedia",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Transaction"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Get transaction by ID",
+        "description": "Mengambil detail satu transaksi berdasarkan ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Transaction ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transaction not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/report/hari-ini": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Get today's report",
+        "description": "Mengambil laporan transaksi hari ini saja (otomatis)",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/report": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Get transaction report",
+        "description": "Mengambil laporan transaksi berdasarkan rentang tanggal",
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": true,
+            "description": "Start date (format: YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2026-01-01"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": true,
+            "description": "End date (format: YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2026-02-01"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid date format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -708,6 +924,139 @@
             "description": "ID of the category (required)",
             "example": 1,
             "minimum": 1
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Transaction ID (auto-generated)",
+            "example": 1
+          },
+          "total_amount": {
+            "type": "integer",
+            "description": "Total amount in cents",
+            "example": 3700000
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Transaction timestamp",
+            "example": "2026-02-08T13:30:00Z"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionDetail"
+            }
+          }
+        }
+      },
+      "TransactionDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Detail ID (auto-generated)",
+            "example": 1
+          },
+          "transaction_id": {
+            "type": "integer",
+            "description": "Transaction ID",
+            "example": 1
+          },
+          "product_id": {
+            "type": "integer",
+            "description": "Product ID",
+            "example": 1
+          },
+          "product_name": {
+            "type": "string",
+            "description": "Product name",
+            "example": "Laptop Gaming"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Quantity purchased",
+            "example": 2
+          },
+          "subtotal": {
+            "type": "integer",
+            "description": "Subtotal in cents",
+            "example": 3700000
+          }
+        }
+      },
+      "CheckoutItem": {
+        "type": "object",
+        "required": [
+          "product_id",
+          "quantity"
+        ],
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "description": "Product ID",
+            "example": 1,
+            "minimum": 1
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Quantity to purchase",
+            "example": 2,
+            "minimum": 1
+          }
+        }
+      },
+      "CheckoutRequest": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "description": "Array of items to checkout",
+            "items": {
+              "$ref": "#/components/schemas/CheckoutItem"
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "ReportResponse": {
+        "type": "object",
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date of report",
+            "example": "2026-01-01"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "End date of report",
+            "example": "2026-02-01"
+          },
+          "total_transactions": {
+            "type": "integer",
+            "description": "Total number of transactions in period",
+            "example": 5
+          },
+          "total_revenue": {
+            "type": "integer",
+            "description": "Total revenue in cents",
+            "example": 18500000
+          },
+          "transactions": {
+            "type": "array",
+            "description": "List of transactions in period",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
           }
         }
       }

@@ -50,8 +50,13 @@ func main() {
 	productService := service.NewProductService(productRepo)
 	productHandler := handlers.NewProductHandler(productService)
 
+	// Initialize transaction with service layer and dependency injection
+	transactionRepo := repository.NewTransactionRepository(database.DB)
+	transactionService := service.NewTransactionService(transactionRepo, productRepo)
+	transactionHandler := handlers.NewTransactionHandler(transactionService)
+
 	// Setup routes
-	handler := router.SetupRoutes(categoryHandler, productHandler)
+	handler := router.SetupRoutes(categoryHandler, productHandler, transactionHandler)
 
 	// Get port from environment or use default
 	port := os.Getenv("PORT")

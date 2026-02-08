@@ -20,9 +20,12 @@ func NewProductHandler(service service.ProductService) *ProductHandler {
 	}
 }
 
-// GetAllProducts handles GET /products
+// GetAllProducts handles GET /products?name=search_term
 func (h *ProductHandler) GetAllProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := h.service.GetAll()
+	// Get search parameter from query string
+	searchName := r.URL.Query().Get("name")
+	
+	products, err := h.service.GetAll(searchName)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Internal Server Error", err.Error())
 		return

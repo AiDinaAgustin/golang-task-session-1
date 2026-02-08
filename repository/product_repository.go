@@ -16,16 +16,26 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-// GetAll retrieves all products with their category names
-func (r *ProductRepository) GetAll() ([]models.Product, error) {
+// GetAll retrieves all products with their category names, optionally filtered by name
+func (r *ProductRepository) GetAll(searchName string) ([]models.Product, error) {
 	query := `
 		SELECT p.id, p.name, p.price, p.stock, p.category_id, c.name as category_name, p.created_at, p.updated_at 
 		FROM products p
 		JOIN categories c ON p.category_id = c.id
-		ORDER BY p.id
+		WHERE 1=1
 	`
 	
-	rows, err := r.db.Query(query)
+	args := []interface{}{}
+	
+	// Add search filter if provided
+	if searchName != "" {
+		query += ` AND p.name ILIKE $1`
+		args = append(args, "%"+searchName+"%")
+	}
+	
+	query += ` ORDER BY p.id`
+	
+	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("error querying products: %w", err)
 	}
